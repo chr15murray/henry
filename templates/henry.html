@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Robot Control</title>
+    <link rel="stylesheet" href='/static/style.css' />
+</head>
+<body onresize="ForceRefresh()">
+
+<div class="range-slider vertical-range" data-slider data-options="vertical: true;">
+  <span class="range-slider-handle" role="slider" tabindex="0"></span>
+  <span class="range-slider-active-segment"></span>
+  <input type="hidden">
+</div>
+
+<label for="speedslider">Speed</label>
+<input id="speedslider" type="range" min="1" max="10" step="1" value ="{{ speed }}" onchange="SpeedUpdate()" />
+<label for="geartoggle"></label>
+<input id="geartoggle" type="button" onclick="GearToggle()" value="Gear = {{ gear }}"  />
+
+
+<br />
+<br />
+<canvas id="FLArrow" width="400" height="400" onclick="FL_OnClick()"></canvas>
+<canvas id="FArrow" width="400" height="400" onclick="F_OnClick()"></canvas>
+<canvas id="FRArrow" width="400" height="400" onclick="FR_OnClick()"></canvas>
+<br />
+<canvas id="LArrow" width="400" height="400" onclick="L_OnClick()"></canvas>
+<canvas id="SArrow" width="400" height="400" onclick="S_OnClick()"></canvas>
+<canvas id="RArrow" width="400" height="400" onclick="R_OnClick()"></canvas>
+<br />
+<canvas id="BLArrow" width="400" height="400" onclick="BL_OnClick()"></canvas>
+<canvas id="BArrow" width="400" height="400" onclick="B_OnClick()"></canvas>
+<canvas id="BRArrow" width="400" height="400" onclick="BR_OnClick()"></canvas>
+<br />
+
+<script>
+    var w = window;
+    var direction = '{{ direction }}';
+    var gear = '{{ gear }}';
+    var speed = '{{ speed }}';
+    var orientation;
+    var speedslider = document.getElementById("speedslider");
+
+    var header = 150;   //Allows for a header size to help calculate the control grid
+    var gridsize = 400;
+
+
+    if(w.innerWidth > w.innerHeight ){
+        gridsize = (w.innerHeight-header) /3;
+    }
+    else{
+        gridsize = (w.innerWidth -30) / 3;
+    }
+
+
+    //Draw FL Arrow on FL Canvas
+    var flcanvas = document.getElementById("FLArrow");
+    var flctx = flcanvas.getContext("2d");
+    flctx.canvas.width = gridsize;
+    flctx.canvas.height = gridsize;
+    flctx.moveTo(gridsize/2, gridsize/2);
+    flctx.lineTo(gridsize/2, gridsize/4);
+    flctx.lineTo(gridsize/4, gridsize/2);
+    flctx.lineTo(gridsize/2, gridsize/4*3);
+    flctx.lineTo(gridsize/2, gridsize/2);
+    flctx.closePath();
+    if ( direction == 'FL' && speed > 0 ) {flctx.fillStyle = "Green";} else { flctx.fillStyle = "Grey";}
+    flctx.fill();
+    flctx.arcTo(gridsize/4*3,gridsize/2,gridsize/4*3,gridsize/4*3,gridsize/4);
+    flctx.lineWidth = gridsize/8;
+    flctx.lineJoin = "round";
+    flctx.lineCap = "round";
+    if ( direction == 'FL' && speed > 0 ) {flctx.strokeStyle = "Green";} else { flctx.strokeStyle = "Grey";}
+    flctx.stroke();
+
+
+    //Draw F Arrow on F Canvas
+    var fcanvas = document.getElementById("FArrow");
+    var fctx = fcanvas.getContext("2d");
+    fctx.canvas.width = gridsize;
+    fctx.canvas.height = gridsize;
+    fctx.moveTo(gridsize/2, gridsize/4);
+    fctx.lineTo(gridsize - gridsize/4, gridsize/2);
+    fctx.lineTo(gridsize/4, gridsize/2);
+    fctx.lineTo(gridsize/2, gridsize/4);
+    fctx.lineTo(gridsize/2, gridsize - gridsize/4);
+    fctx.lineWidth = gridsize/4;
+    fctx.lineJoin = "round";
+    fctx.lineCap = "round";
+    if ( direction == 'F' && speed > 0 ) {fctx.strokeStyle = "Green";} else { fctx.strokeStyle = "Grey";}
+    fctx.stroke();
+
+    //Draw FR Arrow on FR Canvas
+    var frcanvas = document.getElementById("FRArrow");
+    var frctx = frcanvas.getContext("2d");
+    frctx.canvas.width = gridsize;
+    frctx.canvas.height = gridsize;
+    frctx.moveTo(gridsize/2, gridsize/2);
+    frctx.lineTo(gridsize/2, gridsize/4);
+    frctx.lineTo(gridsize/4*3, gridsize/2);
+    frctx.lineTo(gridsize/2, gridsize/4*3);
+    frctx.lineTo(gridsize/2, gridsize/2);
+    frctx.closePath();
+    if ( direction == 'FR' && speed > 0 ) {frctx.fillStyle = "Green";} else { frctx.fillStyle = "Grey";}
+    frctx.fill();
+    frctx.arcTo(gridsize/4,gridsize/2,gridsize/4,gridsize/4*3,gridsize/4);
+    frctx.lineWidth = gridsize/8;
+    frctx.lineJoin = "round";
+    frctx.lineCap = "round";
+    if ( direction == 'FR' && speed > 0 ) {frctx.strokeStyle = "Green";} else { frctx.strokeStyle = "Grey";}
+    frctx.stroke();
+
+    //Draw L Arrow on L Canvas
+    var lcanvas = document.getElementById("LArrow");
+    var lctx = lcanvas.getContext("2d");
+    lctx.canvas.width = gridsize;
+    lctx.canvas.height = gridsize;
+    lctx.rotate(270*Math.PI/180);
+    lctx.translate( -gridsize , 0);
+    lctx.moveTo(gridsize/2, gridsize/4);
+    lctx.lineTo(gridsize - gridsize/4, gridsize/2);
+    lctx.lineTo(gridsize/4, gridsize/2);
+    lctx.lineTo(gridsize/2, gridsize/4);
+    lctx.lineTo(gridsize/2, gridsize - gridsize/4);
+    lctx.lineWidth = gridsize/4;
+    lctx.lineJoin = "round";
+    lctx.lineCap = "round";
+    if ( direction == 'L' && speed > 0 ) {lctx.strokeStyle = "Green";} else { lctx.strokeStyle = "Grey";}
+    lctx.stroke();
+
+    //Draw S Arrow on S Canvas
+    var scanvas = document.getElementById("SArrow");
+    var sctx = scanvas.getContext("2d");
+    sctx.canvas.width = gridsize;
+    sctx.canvas.height = gridsize;
+    sctx.moveTo(gridsize/4, gridsize/4);
+    sctx.lineTo(gridsize/4 * 3, gridsize/4);
+    sctx.lineTo(gridsize/4 * 3, gridsize/4 * 3);
+    sctx.lineTo(gridsize/4, gridsize/4 * 3);
+    sctx.lineTo(gridsize/4, gridsize/4);
+    sctx.closePath();
+    sctx.fillStyle = "Red";
+    sctx.fill();
+    sctx.lineWidth = gridsize/4;
+    sctx.lineJoin = "round";
+    sctx.lineCap = "round";
+    sctx.strokeStyle = "Red";
+    sctx.stroke();
+
+    //Draw R Arrow on R Canvas
+    var rcanvas = document.getElementById("RArrow");
+    var rctx = rcanvas.getContext("2d");
+    rctx.canvas.width = gridsize;
+    rctx.canvas.height = gridsize;
+    rctx.rotate(90*Math.PI/180);
+    rctx.translate(0,-gridsize);
+    rctx.moveTo(gridsize/2, gridsize/4);
+    rctx.lineTo(gridsize - gridsize/4, gridsize/2);
+    rctx.lineTo(gridsize/4, gridsize/2);
+    rctx.lineTo(gridsize/2, gridsize/4);
+    rctx.lineTo(gridsize/2, gridsize - gridsize/4);
+    rctx.lineWidth = gridsize/4;
+    rctx.lineJoin = "round";
+    rctx.lineCap = "round";
+    if ( direction == 'R' && speed > 0 ) {rctx.strokeStyle = "Green";} else { rctx.strokeStyle = "Grey";}
+    rctx.stroke();
+
+    //Draw BL Arrow on BL Canvas
+    var blcanvas = document.getElementById("BLArrow");
+    var blctx = blcanvas.getContext("2d");
+    blctx.canvas.width = gridsize;
+    blctx.canvas.height = gridsize;
+    blctx.moveTo(gridsize/2, gridsize/2);
+    blctx.lineTo(gridsize/2, gridsize/4);
+    blctx.lineTo(gridsize/4, gridsize/2);
+    blctx.lineTo(gridsize/2, gridsize/4*3);
+    blctx.lineTo(gridsize/2, gridsize/2);
+    blctx.closePath();
+    if ( direction == 'BL' && speed > 0 ) {blctx.fillStyle = "Green";} else { blctx.fillStyle = "Grey";}
+    blctx.fill();
+    blctx.arcTo(gridsize/4*3,gridsize/2,gridsize/4*3,gridsize/4,gridsize/4);
+    blctx.lineWidth = gridsize/8;
+    blctx.lineJoin = "round";
+    blctx.lineCap = "round";
+    if ( direction == 'BL' && speed > 0 ) {blctx.strokeStyle = "Green";} else { blctx.strokeStyle = "Grey";}
+    blctx.stroke();
+
+
+    //Draw B Arrow on B Canvas
+    var bcanvas = document.getElementById("BArrow");
+    var bctx = bcanvas.getContext("2d");
+    bctx.canvas.width = gridsize;
+    bctx.canvas.height = gridsize;
+    bctx.rotate(180*Math.PI/180);
+    bctx.translate(-gridsize,-gridsize);
+    bctx.moveTo(gridsize/2, gridsize/4);
+    bctx.lineTo(gridsize - gridsize/4, gridsize/2);
+    bctx.lineTo(gridsize/4, gridsize/2);
+    bctx.lineTo(gridsize/2, gridsize/4);
+    bctx.lineTo(gridsize/2, gridsize - gridsize/4);
+    bctx.lineWidth = gridsize/4;
+    bctx.lineJoin = "round";
+    bctx.lineCap = "round";
+    if ( direction == 'B' && speed > 0 ) {bctx.strokeStyle = "Green";} else { bctx.strokeStyle = "Grey";}
+    bctx.stroke();
+
+    //Draw BR Arrow on BR Canvas
+    var brcanvas = document.getElementById("BRArrow");
+    var brctx = brcanvas.getContext("2d");
+    brctx.canvas.width = gridsize;
+    brctx.canvas.height = gridsize;
+    brctx.moveTo(gridsize/2, gridsize/2);
+    brctx.lineTo(gridsize/2, gridsize/4);
+    brctx.lineTo(gridsize/4*3, gridsize/2);
+    brctx.lineTo(gridsize/2, gridsize/4*3);
+    brctx.lineTo(gridsize/2, gridsize/2);
+    brctx.closePath();
+    if ( direction == 'BR' && speed > 0 ) {brctx.fillStyle = "Green";} else { brctx.fillStyle = "Grey";}
+    brctx.fill();
+    brctx.arcTo(gridsize/4,gridsize/2,gridsize/4,gridsize/4,gridsize/4);
+    brctx.lineWidth = gridsize/8;
+    brctx.lineJoin = "round";
+    brctx.lineCap = "round";
+    if ( direction == 'BR' && speed > 0 ) {brctx.strokeStyle = "Green";} else { brctx.strokeStyle = "Grey";}
+    brctx.stroke();
+
+    function FL_OnClick(){ location = "/henry/FL/" + gear + "/" + speed; }
+    function F_OnClick() { location = "/henry/F/"  + gear + "/" + speed; }
+    function FR_OnClick(){ location = "/henry/FR/"  + gear + "/" + speed; }
+    function L_OnClick() { location = "/henry/L/" + gear + "/" + speed; }
+    function S_OnClick(){ location = "/henry/S/" + gear + "/" + speed; }
+    function R_OnClick(){ location = "/henry/R/" + gear + "/" + speed; }
+    function BL_OnClick(){ location = "/henry/BL/" + gear + "/" + speed; }
+    function B_OnClick(){ location = "/henry/B/" + gear + "/" + speed; }
+    function BR_OnClick(){ location = "/henry/BR/" + gear + "/" + speed; }
+    function SpeedUpdate(){location = "/henry/" + direction + "/" + gear + "/" + speedslider.value; }
+    function GearToggle(){
+        if( gear == 'L' ){ location = "/henry/" + direction + "/H/" + speed;}
+        else { location = "/henry/" + direction + "/L/" + speed;}
+    }
+    function ForceRefresh(){location = "/henry/" + direction + "/" + gear + "/" + speed;}
+</script>
+
+</body>
+</html>
