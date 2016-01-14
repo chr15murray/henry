@@ -31,10 +31,14 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h3>
+        <p><img src="https://raw.githubusercontent.com/chr15murray/henry/gh-pages/images/20160113_235948.jpg" alt="henry"></p>
+
+<h3>
 <a id="welcome-to-the-henry-github-pages" class="anchor" href="#welcome-to-the-henry-github-pages" aria-hidden="true"><span class="octicon octicon-link"></span></a>Welcome to the Henry github pages.</h3>
 
-<p>Henry is a Raspberry Pi Zero powered robot with a simple web interface for remote control. Henry was inspired by PiWars and the Zerobot feature in MagPi Magazine Issue 40 (Pi Zero launch edition)</p>
+<p>Henry is a Raspberry Pi Zero powered robot with a simple web interface for remote control. I was inspired by PiWars and the Zerobot feature in MagPi Magazine Issue 40 (Pi Zero launch edition) and wanted to get making. I have plans for a more complicated robot but this was a good starting point. This project is therefore just for fun.</p>
+
+<p><img src="https://raw.githubusercontent.com/chr15murray/henry/gh-pages/images/20160114_000216.jpg" alt="henry"></p>
 
 <h3>
 <a id="basic-robot-components" class="anchor" href="#basic-robot-components" aria-hidden="true"><span class="octicon octicon-link"></span></a>Basic Robot Components</h3>
@@ -63,26 +67,45 @@
 <a id="zerobot" class="anchor" href="#zerobot" aria-hidden="true"><span class="octicon octicon-link"></span></a>ZeroBot</h3>
 
 <p>The <a href="https://github.com/topshed/ZeroBot">Zerobot</a> tutorial was the starting point for me and this project. In addition to the Pi Zero it uses two stepper motors via driver boards and an HC-SR04 sensor to drive/walk around a set path unless it detects an obstacle. 
-This is great but after attending PiWars in Cambridge I knew I wanted some form of manual control. I have other plans for a more complicated robot with playstation controller etc but for Henry I wanted to keep it simple and so decided on a web interface. At some point in the future maybe i'll add some more automation too.</p>
+This is great but after attending PiWars in Cambridge I knew I wanted some form of manual control. My other plans for the more complicated robot will use a playstation controller but for Henry I wanted to keep it simple and so decided on a web interface. At some point in the future maybe i'll add some more automation too.</p>
 
 <h3>
 <a id="flask-web-server" class="anchor" href="#flask-web-server" aria-hidden="true"><span class="octicon octicon-link"></span></a>Flask Web Server</h3>
 
-<p>TO DO: Describe Flask and it's usage</p>
+<p>To allow for some basic controls I wanted to generate a web page in the easiest way possible. I came across Flask and decided to try it. I was running trial of PyCharm and it all just worked great together so stuck with it and implemented a basic template driven setup where the URL structure contained all the variables I needed (Direction, Gear, Speed).</p>
+
+<p>http://:5000/henry/F/L/8</p>
+
+<p>The above sets direction of Forward, Low gear and Speed of 8. The flask template uses a number of HTML Canvas elements to draws all the arrows for movement with the correct link urls. This gave me complete flexibility on how it looks as well as being able to scale it based on the browser size / orientation being used. The page records these variables for the move() function to pickup later. </p>
 
 <h3>
 <a id="updating-zerobot-code" class="anchor" href="#updating-zerobot-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>Updating ZeroBot Code</h3>
 
-<p>etc</p>
+<p>The ZeroBot code was a good start and gave me a basis for the motor control but I needed to make some changes to achieve what I wanted to. Firstly I wanted to extend the basic movement options from Forward, Back, Left and Right. While this seems to be enough(and is really) I wanted to investigate the options for turning. To spin Right there are now three options:</p>
+
+<ul>
+<li>Left motor Forward (Rotate right around the right hand wheel)</li>
+<li>Right motor Back (Rotate right around the left hand wheel)</li>
+<li>Left motor forward and Right motor back (Rotate around the middle of the robot)
+The latter is my preferred option and seems most natural but I've left all options in the code. To implement these options i had to split the motor sequence so that left and right were tracked separately allowing left to iterate forward through the sequence while right goes backwards.</li>
+</ul>
+
+<p>I also wanted to implement a 'Gear' option. The motor control boards support two sequences a 4 step and an 8 step sequence. The idea is that the 8 step is slower but has more torque (low gear) and the 4 step is faster but has less torque. The ZeroBot already had the sequence in place along with code to step through the 8 steps in high and low settings. All i had to do was add the button to the page and code it through to change the variable.</p>
+
+<p>For speed control I decided to use a simple slider on the page ranging from 1 to 10. This is then mapped to a pre-defined 'waittimes' that affect the overall speed by slowing down the time between motor steps. A dictionary for high/low is used with tuples storing the actual speeds. Some wait time appears essential to allow the wheels to actually rotate between motor steps and so setting the wait time too low led to no movement at all. Finding the point at which movement was reliable and at it fastest dictated the wait time used for the max speed of 10. The slowest speed was set when the robot just moves and the numbers in between distributed. To my surprise the Low gear high speed appears higher in initial tests than the High gear option - If this is the case then the High gear is redundant.</p>
 
 <h3>
 <a id="future-development-ideas" class="anchor" href="#future-development-ideas" aria-hidden="true"><span class="octicon octicon-link"></span></a>Future development ideas</h3>
+
+<p>I'm already working on another robot but if/when I spend more time on Henry I'll these are some areas I am currently thinking of:</p>
 
 <ul>
 <li>Inactivity 'wander about'</li>
 <li>Add the HC-SR04 sensor in</li>
 <li>Line following setup</li>
 <li>lights, sound... aesthetics</li>
+<li>Implement REST API for the movements. Implement asyncronous calls from the web page to save refreshes.</li>
+<li>Error checking (invalid inputs etc)</li>
 </ul>
       </section>
     </div>
